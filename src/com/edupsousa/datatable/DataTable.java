@@ -7,13 +7,13 @@ public class DataTable {
 
 	public static final int TYPE_INT = 0;
 	public static final int TYPE_STRING = 1;
-	
+
 	public static final int FORMAT_CSV = 0;
 	public static final int FORMAT_HTML = 1;
-	
+
 	private LinkedHashMap<String, Integer> columnsTypes = new LinkedHashMap<String, Integer>();
 	private ArrayList<DataTableRow> rows = new ArrayList<DataTableRow>();
-	
+
 	public int columnsCount() {
 		return columnsTypes.size();
 	}
@@ -46,7 +46,7 @@ public class DataTable {
 	public int getCollumnType(String collumn) {
 		return columnsTypes.get(collumn);
 	}
-	
+
 	private void checkRowCompatibilityAndThrows(DataTableRow row) {
 		for (String collumnName : columnsTypes.keySet()) {
 			if (row.hasValueFor(collumnName) && 
@@ -55,7 +55,7 @@ public class DataTable {
 			}
 		}
 	}
-	
+
 	private boolean isValueCompatible(int type, Object value) {
 		if (type == this.TYPE_INT && !(value instanceof Integer)) {
 			return false;
@@ -88,19 +88,48 @@ public class DataTable {
 				}
 				output += "\n";
 			}
+		}else if(format == DataTable.FORMAT_HTML){
+			output = "<table>\n";
+			output += "<tr>";
+			for (String collumnName : columnsTypes.keySet()) {
+				output += "<td>" + collumnName + "</td>";
+			}
+			output += "</tr>\n";
+			for (int i = 0; i < this.rowsCount(); i++) {
+				row = this.getRow(i);
+				output += "<tr>";
+				for (String collumnName : columnsTypes.keySet()) {
+					output += "<td>" + row.getValue(collumnName) + "</td>";
+				}
+				output += "</tr>\n";
+			}
+			output += "</table>\n";
 		}
 		return output;
 	}
-	
+
 	public void insertRowAt(DataTableRow row, int index) {
 		rows.add(index, row);
 	}
-	
+
 	public DataTable filterEqual(String collumn, Object value) {
 		return null;
 	}
-	
+
 	public DataTable sortAscending(String collumn) {
-		return null;
+		if(columnsTypes.get(collumn) == TYPE_STRING){
+			throw new ClassCastException("Only Integer columns can be sorted.");
+		}
+		
+		for (int i = 0; i < rows.size(); i++) {
+			for (int j = 0; j < rows.size()-1; j++) {
+				if ((int)rows.get(j).getValue(collumn)>(int)rows.get(j+1).getValue(collumn)) {
+					rows.add(j, rows.get(j+1));
+					rows.remove(j+2);
+				}
+			}
+		}
+		
+		return this;
 	}
 }
